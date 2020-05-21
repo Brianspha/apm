@@ -1,26 +1,58 @@
 {
-  "name": "arm",
+  "name": "@brianspha/apm",
+  "author": "Siphamandla Mjoli",
   "version": "0.1.0",
-  "private": true,
+  "description": "A CLI tool for uploading packages to Arweave",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
+  "bin": "cli/apm.js",
+  "keywords": [
+    "cli",
+    "arweave",
+    "decentralised",
+    "storage",
+    "package"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "cli/apm.js",
   "dependencies": {
-    "argparse": "^1.0.10",
+    "arg": "^4.1.3",
+    "arql-ops": "^1.0.0",
+    "arweave": "^1.7.1",
+    "axios": "^0.19.2",
+    "colors": "^1.4.0",
+    "commander": "^5.1.0",
     "core-js": "^3.6.4",
+    "create-file": "^1.0.1",
+    "create-package-json": "^0.1.0",
+    "esm": "^3.2.25",
+    "inquirer": "^7.1.0",
+    "node-cache": "^5.1.0",
+    "pack": "^2.2.0",
+    "platform-folders": "^0.5.1",
     "vue": "^2.6.11",
+    "vuetify": "^2.2.11",
     "vuex": "^3.4.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.3.0",
     "@vue/cli-plugin-eslint": "~4.3.0",
     "@vue/cli-service": "~4.3.0",
+    "babel-cli": "^6.26.0",
     "babel-eslint": "^10.1.0",
+    "electron": "^9.0.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
-    "vue-template-compiler": "^2.6.11"
+    "sass": "^1.19.0",
+    "sass-loader": "^8.0.0",
+    "vue-cli-plugin-vuetify": "~2.0.5",
+    "vue-template-compiler": "^2.6.11",
+    "vuetify-loader": "^1.3.0"
   },
   "eslintConfig": {
     "root": true,
@@ -40,5 +72,9 @@
     "> 1%",
     "last 2 versions",
     "not dead"
+  ],
+  "files": [
+    "bin/",
+    "cli/"
   ]
 }
