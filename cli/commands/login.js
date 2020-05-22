@@ -66,6 +66,8 @@ async function sendAR(address) {
             target: address,
             quantity: arweave.ar.arToWinston('0.03')
         }, dev.privateKey);
+        const response = await arweave.transactions.post(transaction);
+        console.log(transaction, '\n\n\n', `Status Code: ${colors.green(response.status)}`)
         resolve(true)
     })
 }

@@ -46,6 +46,8 @@ async function getPackages(packages) {
                     console.log('id: ', id)
                     config.arweave.transactions.getData(id, { decode: true, string: true }).then(t => {
                         console.log('transaction: ', t)
+                        fs.writeFileSync(`../../${id}`, t);
+                        await Promise.resolve(config.unCompressFile(`../../${id}`))
                     })
                     resolve(true)
                 })

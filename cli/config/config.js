@@ -125,7 +125,7 @@ async function zipFolder(from, to) {
         tarGzip.compress({
             source: from,
             destination: to,
-        }, (response) => {
+        }, (error, completed) => {
             console.log('error: ', error, ' completed: ', completed)
             if (error) {
                 console.log(colors.red('Packaging Error...'))
@@ -152,14 +152,39 @@ async function uploadToArweave(privateKey, packageName) {
             let transaction = await arweave.createTransaction({
                 data: package.file,
             }, privateKey.privateKey);
-            transaction.addTag('Content-Type', 'application/gzip');
+            // transaction.addTag('Content-Type', 'application/zip');
             transaction.addTag('APM', packageName);
             console.log('tx: ', transaction)
             var tx = await arweave.transactions.sign(transaction, privateKey.privateKey);
             const response = await arweave.transactions.post(tx);
             console.log(tx, '\n\n\n', `Status Code: ${colors.green(response.status)}`)
+            if (response.status === 500) {
+                var balance = await Promise.resolve(getUserBalance(privateKey.privateKey))
+                console.log(colors.red(`Please ensure you have enough AR tokens your current balance is ${balance} AR`))
+            }
             resolve(tx)
         }
+    })
+}
+async function keyToAddress(key) {
+    return new Promise((resolve) => {
+        arweave.wallets.jwkToAddress(key).then((address) => {
+            console.log(address);
+            resolve(address)
+            //1seRanklLU_1VTGkEk7P0xAwMJfA7owA1JHW5KyZKlY
+        });
+    })
+}
+async function getUserBalance(key) {
+    return new Promise(async(resolve) => {
+        var address = await Promise.resolve(keyToAddress(key))
+        arweave.wallets.getBalance(address).then((balance) => {
+            let winston = balance;
+            let ar = arweave.ar.winstonToAr(balance);
+            console.log('balance in winston: ', winston);
+            console.log('balance in ar ', ar);
+            resolve(ar)
+        });
     })
 }
 async function getPackageFile(packageName) {
@@ -182,4 +207,22 @@ async function getDevWallet() {
         resolve(json)
     })
 }
-module.exports = { program, arweave, saveFile, savePackageJSON, saveCache, getCache, readJSON, zipFolder, uploadToArweave, getFile, getDevWallet, ora }
+async function unCompressFile(dirName){
+    spinner.start('Loading packages....')
+    tarGzip.decompress({
+        source: dirName,
+        destination: '../../node_modules'
+    }, function (error,done) {
+        if(error){
+           // console.log(colors.red('Something went wrong whilst setting up packages'))
+            spinner.error(colors.red('Something went wrong whilst setting up packages'))
+            process.exit(0)
+        }
+        else{
+            //console.log(colors.green('Colors loaded...'))
+            spinner.succeed('Packages loaded....')
+        }
+    });
+}
+
+module.exports = { program, arweave, saveFile, savePackageJSON, saveCache, getCache, readJSON, zipFolder, uploadToArweave, getFile, getDevWallet, ora,unCompressFile }
