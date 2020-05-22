@@ -97,8 +97,8 @@ inquirer.prompt(questions).then(answers => {
         "test": "echo \"Error: no test specified\" && exit 1"
     }
     answers.keywords = answers.keywords.split(' ')
-    answers.devDependencies = {}
-    answers.dependencies = {}
+    answers.devDependencies = []
+    answers.dependencies = []
     console.log(JSON.stringify(answers, null, '  '));
     config.savePackageJSON(JSON.stringify(answers, null, '  '))
 });

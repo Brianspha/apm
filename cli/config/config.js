@@ -1,5 +1,26 @@
 const { program } = require('commander');
+const path = require('platform-folders')
 const createFile = require('create-file');
+const NodeCache = require("node-cache");
+const Arweave = require('arweave/node');
+const readjson = require('readjson');
+const ora = require('ora')
+let spinner = ora()
+var tarGzip = require('node-targz');
+var fs = require('fs');
+const colors = require('colors')
+// node cachemanager
+var Cache = require('file-system-cache').default;
+const cache = Cache({
+    basePath: "./.cache", // Optional. Path where cache files are stored (default).
+});
+const arweave = Arweave.init({
+    host: 'arweave.net',// Hostname or IP address for a Arweave host
+    port: 443,          // Port
+    protocol: 'https',  // Network protocol http or https
+    timeout: 20000,     // Network request timeouts in milliseconds
+    logging: false,     // Enable network request logging
+});
 program
     .version('0.0.1')
     .command('install [name]', 'install one or more packages', { executableFile: '../cli/commands/install' })
@@ -7,21 +28,21 @@ program
     .option('-f, --force', 'force')
     .command('help', 'outputs all commands', { executableFile: '../cli/commands/help' }, { isDefault: true })
     .alias('h')
-    .usage(' help')
+    .usage('help')
     .command('list', 'list packages installed', { executableFile: '../cli/commands/list' })
     .alias('ls')
-    .usage(' list')
+    .usage('list')
     .command('publish', 'publish the package to arweave', { executableFile: '../cli/commands/publish' })
     .alias('p')
-    .usage(' publish')
+    .usage('publish')
     .command('login', 'login with your arweave wallet', { executableFile: '../cli/commands/login' })
     .alias('l')
-    .usage(' login')
+    .usage('login')
     .command('view', 'view all packages with their authors', { executableFile: '../cli/commands/view' })
     .alias('v')
     .usage(' view')
     .command('uninstall [name]', 'uninstall a package or packages', { executableFile: '../cli/commands/uninstall' })
-    .usage(' uninstall [name] [--force,-force, force]')
+    .usage('uninstall [name] [--force,-force, force]')
     .alias('u')
     .command('init', 'initialise package.json file compatible with npm', { executableFile: '../cli/commands/init' })
     .on('command:*', function (operands) {
@@ -49,15 +70,7 @@ function mySuggestBestMatch(arg, commands) {
         program.helpInformation()
     }
 }
-const Arweave = require('arweave/node');
 
-const arweave = Arweave.init({
-    host: 'arweave.net',// Hostname or IP address for a Arweave host
-    port: 443,          // Port
-    protocol: 'https',  // Network protocol http or https
-    timeout: 20000,     // Network request timeouts in milliseconds
-    logging: false,     // Enable network request logging
-});
 function saveFile(fileName, contents) {
     createFile(`${path.getDesktopFolder()}/arweave/${fileName}.json`, `${contents}`, (error) => {
         if (error) {
@@ -65,13 +78,108 @@ function saveFile(fileName, contents) {
         }
     })
 }
+async function getFile(fileName) {
+    return new Promise(async (resolve) => {
+        const json = await readjson(`${path.getDesktopFolder()}/arweave/${fileName}.json`);
+        resolve(json)
+    })
+}
 function savePackageJSON(contents) {
-    createFile(`../testPackage.json`, `${contents}`, (error) => {
+    createFile(`../apm.json`, `${contents}`, (error) => {
         if (error) {
             console.error('error: ', error)
         }
     })
 }
-const NodeCache = require( "node-cache" );
-const cache = new NodeCache({ stdTTL: 1000, checkperiod: 1000 });
-module.exports = { program, arweave,saveFile,savePackageJSON,cache }
+async function readJSON() {
+    return new Promise(async (resolve) => {
+        const json = await readjson('../apm.json');
+        resolve(json)
+    })
+
+}
+function saveCache(values) {
+    cache.set(values[0], values[1])
+        .then(result => {
+            console.log('saved cache')
+        })
+}
+function getCache(key) {
+    return new Promise((resolve) => {
+        cache.get(key)
+            .then(result => {
+                console.log(result);
+                resolve(result)
+            })
+            .catch(err => {
+                resolve({})
+                console.error(err)
+            });
+    })
+
+}
+
+async function zipFolder(from, to) {
+    return new Promise((resolve) => {
+        console.log(colors.green('Packaging Package folder please wait ..'))
+        tarGzip.compress({
+            source: from,
+            destination: to,
+        }, (response) => {
+            console.log('error: ', error, ' completed: ', completed)
+            if (error) {
+                console.log(colors.red('Packaging Error...'))
+                process.exit(0)
+            }
+            else {
+                spinner.succeed('Packaging completed...')
+                spinner.stop()
+                resolve(true)
+            }
+        })
+    })
+}
+async function uploadToArweave(privateKey, packageName) {
+    return new Promise(async (resolve) => {
+        var package = await Promise.resolve((getPackageFile(packageName)))
+        if (!package.found) {
+            console.error(colors.red(`Package Zip file not found please ensure its in the root directory of this project or run ${colors.yellow('apm publish')}`))
+            resolve({})
+            process.exit(0)
+        }
+        else {
+            console.log('packageFile: ', package.file, ' key: ', privateKey, ' packageName: ', packageName)
+            let transaction = await arweave.createTransaction({
+                data: package.file,
+            }, privateKey.privateKey);
+            transaction.addTag('Content-Type', 'application/gzip');
+            transaction.addTag('APM', packageName);
+            console.log('tx: ', transaction)
+            var tx = await arweave.transactions.sign(transaction, privateKey.privateKey);
+            const response = await arweave.transactions.post(tx);
+            console.log(tx, '\n\n\n', `Status Code: ${colors.green(response.status)}`)
+            resolve(tx)
+        }
+    })
+}
+async function getPackageFile(packageName) {
+    return new Promise((resolve) => {
+        fs.readFile(`../${packageName}.tar.gz`, function (err, data) {
+            if (err) {
+                console.log(err)
+                resolve({ file: null, found: false })
+            }
+            else {
+                resolve({ file: data, found: true })
+                console.log('data: ', data)
+            }
+        });
+    })
+}
+async function getDevWallet() {
+    return new Promise(async (resolve) => {
+        const json = await readjson('./dev-account/privateKey.json');
+        resolve(json)
+    })
+}
+module.exports = { program, arweave, saveFile, savePackageJSON, saveCache, getCache, readJSON, zipFolder, uploadToArweave, getFile, getDevWallet, ora }
