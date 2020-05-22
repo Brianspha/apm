@@ -151,15 +151,15 @@ async function uploadToArweave(privateKey, packageName) {
             console.log('packageFile: ', package.file, ' key: ', privateKey, ' packageName: ', packageName)
             let transaction = await arweave.createTransaction({
                 data: package.file,
-            }, privateKey.privateKey);
+            }, privateKey);
             // transaction.addTag('Content-Type', 'application/zip');
             transaction.addTag('APM', packageName);
             console.log('tx: ', transaction)
-            var tx = await arweave.transactions.sign(transaction, privateKey.privateKey);
+            var tx = await arweave.transactions.sign(transaction, privateKey);
             const response = await arweave.transactions.post(tx);
             console.log(tx, '\n\n\n', `Status Code: ${colors.green(response.status)}`)
             if (response.status === 500) {
-                var balance = await Promise.resolve(getUserBalance(privateKey.privateKey))
+                var balance = await Promise.resolve(getUserBalance(privateKey))
                 console.log(colors.red(`Please ensure you have enough AR tokens your current balance is ${balance} AR`))
             }
             resolve(tx)
@@ -225,4 +225,4 @@ async function unCompressFile(dirName){
     });
 }
 
-module.exports = { program, arweave, saveFile, savePackageJSON, saveCache, getCache, readJSON, zipFolder, uploadToArweave, getFile, getDevWallet, ora,unCompressFile }
+module.exports = { program, arweave, saveFile, savePackageJSON, saveCache, getCache, readJSON, zipFolder, uploadToArweave, getFile, getDevWallet, ora,unCompressFile,getUserBalance }

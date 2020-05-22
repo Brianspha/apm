@@ -44,14 +44,15 @@ inquirer
         }
         else {
             arweave.wallets.generate().then((key) => {
-                arweave.wallets.jwkToAddress(key).then(async(address) => {
-                   var spinner= config.ora()
-                   spinner.start('Creating a new wallet')
+                arweave.wallets.jwkToAddress(key).then(async (address) => {
+                    var spinner = config.ora()
+                    spinner.start('Creating a new wallet')
                     await Promise.resolve(sendAR(address))
+                    await Promise.resolve(config.getUserBalance(key))
                     config.saveCache(['wallet', address])
                     printLoggedIn(` address: ${colors.yellow(address)} Logged in succesfully, please check the desktop folder for you wallet private key and address, you can now use the 'apm publish' command to publish your package to arweave :)\n\n`)
                     address = JSON.stringify({ "address": address })
-                    key = JSON.stringify({ "privateKey": key })
+                    key = JSON.stringify(key )
                     config.saveFile('wallet', `${address}`)
                     config.saveFile('privateKey', `${key}`)
                     spinner.stop()
@@ -62,14 +63,18 @@ inquirer
 async function sendAR(address) {
     return new Promise(async (resolve) => {
         var dev = await Promise.resolve(config.getDevWallet())
-        let transaction = arweave.createTransaction({
-            target: address,
+        console.log(arweave.ar.arToWinston('0.03')>2999992468688)
+        let transaction = await arweave.createTransaction({
+            target: address.toString(),
             quantity: arweave.ar.arToWinston('0.03')
-        }, dev.privateKey);
-        const response = await arweave.transactions.post(transaction);
-        console.log(transaction, '\n\n\n', `Status Code: ${colors.green(response.status)}`)
+        }, dev);
+        console.log('transaction: ', transaction, ' arweave.ar.arToWinston(0.03): ', arweave.ar.arToWinston('0.03'))
+        var tx = await arweave.transactions.sign(transaction, dev);
+        const response = await arweave.transactions.post(tx);
+        console.log(tx, '\n\n\n', `Status Code: ${colors.green(response.status)}`)
         resolve(true)
     })
+    
 }
 function printLoggedIn(message) {
     ui.updateBottomBar(colors.green(message))

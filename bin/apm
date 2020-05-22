@@ -1,7 +1,3 @@
 #!/usr/bin/env node
 
-
-const [, , ...args] = process.argv;
-const arv = require('arweave/node')
-console.log('args: ',args,arv)
-require('../cli/apm').parser(args);
+require('../cli/apm')
