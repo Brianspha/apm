@@ -40,16 +40,18 @@ async function getPackages(packages) {
     return new Promise(async (resolve) => {
         var expressions = await Promise.resolve(formulateExpressions(packages))
         config.arweave.arql(expressions).then((transactionIds) => {
-            console.log('ids: ', transactionIds)
+           console.log('ids: ', transactionIds)
             if (transactionIds.length > 0) {
-                transactionIds.map((id) => {
-                    console.log('id: ', id)
-                    config.arweave.transactions.getData(id, { decode: true, string: true }).then(t => {
-                        console.log('transaction: ', t)
-                        fs.writeFileSync(`../../${id}`, t);
-                        await Promise.resolve(config.unCompressFile(`../../${id}`))
-                    })
-                    resolve(true)
+                transactionIds.map(async(id) => {
+           //         console.log('id: ', id)
+                    config.arweave.transactions.getData(id, { decode: true}).then((t => {
+                       console.log('transaction: ', t)
+                        //config.fs.writeFileSync(`../../${id}`, t);
+                         Promise.resolve(config.unCompressFile(`../../${id}`)).then((results)=>{
+                             console.log('results of uncompress: ',results)
+                             resolve(true)
+                         })
+                    }))
                 })
             }
             else {
@@ -64,7 +66,7 @@ function formulateExpressions(packages) {
         packages.map((package) => {
             console.log('package: ', package)
             const query = arql.or(
-                arql.equals('package', package),
+                arql.equals('apm', package),
             );
             console.log(query)
             resolve(query)

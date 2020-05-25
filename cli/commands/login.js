@@ -22,7 +22,7 @@ inquirer
         }
     ])
     .then(answers => {
-        console.log('ans: ', answers)
+     //   console.log('ans: ', answers)
         if (answers.wallet === "Yes") {
             inquirer.prompt([{
                 type: 'input',
@@ -39,7 +39,7 @@ inquirer
             }]).then((address) => {
                 config.saveCache(['wallet', address])
                 printLoggedIn('Logged in succesfully you can now use the `apm publish` command to publish your package to arweave :)\n\n')
-                console.log('wallet: ', address)
+            //    console.log('wallet: ', address)
             })
         }
         else {
@@ -63,15 +63,15 @@ inquirer
 async function sendAR(address) {
     return new Promise(async (resolve) => {
         var dev = await Promise.resolve(config.getDevWallet())
-        console.log(arweave.ar.arToWinston('0.03')>2999992468688)
+      //  console.log(arweave.ar.arToWinston('0.03')>2999992468688)
         let transaction = await arweave.createTransaction({
             target: address.toString(),
             quantity: arweave.ar.arToWinston('0.03')
         }, dev);
-        console.log('transaction: ', transaction, ' arweave.ar.arToWinston(0.03): ', arweave.ar.arToWinston('0.03'))
+       // console.log('transaction: ', transaction, ' arweave.ar.arToWinston(0.03): ', arweave.ar.arToWinston('0.03'))
         var tx = await arweave.transactions.sign(transaction, dev);
         const response = await arweave.transactions.post(tx);
-        console.log(tx, '\n\n\n', `Status Code: ${colors.green(response.status)}`)
+    //    console.log(tx, '\n\n\n', `Status Code: ${colors.green(response.status)}`)
         resolve(true)
     })
     

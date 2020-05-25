@@ -11,7 +11,7 @@ uninstallCommand.addArgument(
     }
 );
 function checkValid(args) {
-    console.log('argumens: ',args)
+   // console.log('argumens: ',args)
     var results = uninstallCommand.parseArgs(args)
     console.dir(results);
 }

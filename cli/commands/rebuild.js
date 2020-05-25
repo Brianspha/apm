@@ -11,7 +11,7 @@ helpCommand.addArgument(
     }
 );
 function checkValid(args) {
-    console.log('argumens: ',args)
+   // console.log('argumens: ',args)
     var results = helpCommand.parseArgs(args)
     console.dir(args);
 }

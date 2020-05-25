@@ -99,7 +99,7 @@ inquirer.prompt(questions).then(answers => {
     answers.keywords = answers.keywords.split(' ')
     answers.devDependencies = []
     answers.dependencies = []
-    console.log(JSON.stringify(answers, null, '  '));
+   // console.log(JSON.stringify(answers, null, '  '));
     config.savePackageJSON(JSON.stringify(answers, null, '  '))
 });
 

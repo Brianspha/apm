@@ -36,10 +36,10 @@ async function publish() {
             // Defaults to infinite depth if undefined
         }
     ]).then(async (dir) => {
-        console.log('dir: ', dir)
+      //  console.log('dir: ', dir)
         var address = await Promise.resolve(config.getFile('privateKey'))
         const spinner = ora('Uploading to Arweave').start()
-        console.log('wallet: ', address)
+     //   console.log('wallet: ', address)
         if (address) {
             var results = await Promise.resolve(upload(address, dir))
         }
@@ -52,13 +52,15 @@ async function publish() {
 
 }
 async function upload(address, packageDir) {
-    const dirName = path.basename(path.resolve('../../' + process.cwd()));
-    console.log('name: ', dirName, 'packageDir: ', packageDir.path)
+    var dirName = await Promise.resolve(config.getPackageJSON());
+    console.log(dirName)
+     dirName=dirName.package_name
+  //  console.log('name: ', dirName, 'packageDir: ', packageDir.path)
     return new Promise((resolve) => {
         config.zipFolder(packageDir.path, `../${dirName}.tar.gz`).then(async (results) => {
             await Promise.resolve(config.uploadToArweave(address, dirName))
             resolve(true)
-            console.log('done')
+           // console.log('done')
         })
     })
 }

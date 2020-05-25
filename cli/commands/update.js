@@ -11,7 +11,7 @@ updateCommand.addArgument(
     }
 );
 function checkValid(args) {
-    console.log('argumens: ',args)
+   // console.log('argumens: ',args)
     var results = updateCommand.parseArgs(args)
     console.dir(args);
 }

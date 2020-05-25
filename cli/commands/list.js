@@ -11,7 +11,7 @@ loginCommand.addArgument(
     }
 );
 function checkValid(args) {
-    console.log('argumens: ',args)
+  //  console.log('argumens: ',args)
     var results = loginCommand.parseArgs(args)
     console.dir(results);
 }
