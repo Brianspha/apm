@@ -15,6 +15,6 @@
   },
   "devDependencies": [],
   "dependencies": [
-    "html"
+    "PACKAGE_NAME"
   ]
 }
