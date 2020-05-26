@@ -2,9 +2,15 @@ const config = require('../config/config')
 const arql = require('arql-ops')
 const color = require('colors')
 const ora = require('ora')
+var fs = require('fs');
+const appRoot = require('app-root-path');
+var dir = `${appRoot}/apm_modules`;
 
 async function install(packages) {
     const spinner = ora().start()
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+    }
     if (packages.length > 0) {
         var found = await Promise.resolve(getPackages(packages))
         if (found) {
@@ -39,26 +45,31 @@ async function updatePackageJSON(packages) {
 async function getPackages(packages) {
     return new Promise(async (resolve) => {
         var expressions = await Promise.resolve(formulateExpressions(packages))
+        console.log(expressions.expr2)
         config.arweave.arql(expressions).then((transactionIds) => {
-           console.log('ids: ', transactionIds)
+            console.log('ids: ', transactionIds)
             if (transactionIds.length > 0) {
-                transactionIds.map(async(id) => {
-           //         console.log('id: ', id)
-                    config.arweave.transactions.getData(id, { decode: true}).then((t => {
-                       console.log('transaction: ', t)
+                var index = 2
+                transactionIds.map(async (id) => {
+                    //console.log('id: ', id)
+                    console.log(`expr${index}`)
+                    config.arweave.transactions.getData(id, { decode: true }).then(async (package) => {
+                        console.log('transaction: ', t)
                         //config.fs.writeFileSync(`../../${id}`, t);
-                         Promise.resolve(config.unCompressFile(`../../${id}`)).then((results)=>{
-                             console.log('results of uncompress: ',results)
-                             resolve(true)
-                         })
-                    }))
+                        var pacakgeName = expressions[`expr${index}`]
+                        console.log('packageName: ', pacakgeName)
+                        index++
+                        await Promise.resolve(config.unCompressFile(`${dir}/${pacakgeName}`, package)).then((results) => {
+                            console.log('results of uncompress: ', results)
+                        })
+                    })
                 })
+                resolve(true)
             }
             else {
                 resolve(false)
             }
         })
-
     })
 }
 function formulateExpressions(packages) {
@@ -72,7 +83,6 @@ function formulateExpressions(packages) {
             resolve(query)
         })
     })
-
 }
 const [, , ...args] = process.argv;
 install(args)

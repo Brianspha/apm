@@ -21,6 +21,7 @@ const arweave = Arweave.init({
     timeout: 50000,     // Network request timeouts in milliseconds
     logging: true,     // Enable network request logging
 });
+
 program
     .version('0.0.1')
     .command('install [name]', 'install one or more packages', { executableFile: '../cli/commands/install' })
@@ -156,7 +157,7 @@ async function uploadToArweave(privateKey, packageName) {
             transaction.addTag('apm', packageName);
             await arweave.transactions.sign(transaction, privateKey);
             const response = await arweave.transactions.post(transaction)
-             console.log(transaction, '\n\n\n', `Status Code: ${colors.green(response.status)}`)
+            console.log(transaction, '\n\n\n', `Status Code: ${colors.green(response.status)}`)
             if (response.status === 500) {
                 var balance = await Promise.resolve(getUserBalance(privateKey))
                 console.log(colors.red(`Please ensure you have enough AR tokens your current balance is ${balance} AR`))
@@ -206,15 +207,18 @@ async function getDevWallet() {
         resolve(json)
     })
 }
-async function unCompressFile(dirName) {
+async function unCompressFile(dirName,package) {
     spinner.start('Loading packages....')
+    if (!fs.existsSync(dirName)) {
+        fs.mkdirSync(dirName);
+    }
     tarGzip.decompress({
-        source: dirName,
-        destination: '../apm_modules'
+        source: package,
+        destination: dirName
     }, function (error, done) {
         if (error) {
-             console.log(colors.red('Something went wrong whilst setting up packages'),error)
-            spinner.error(colors.red('Something went wrong whilst setting up packages'))
+            console.log(colors.red('Something went wrong whilst setting up packages'), error)
+            spinner.fail(colors.red('Something went wrong whilst setting up packages'))
             process.exit(0)
         }
         else {
@@ -223,10 +227,10 @@ async function unCompressFile(dirName) {
         }
     });
 }
-async function getPackageJSON(){
-    return new Promise(async (resolve)=>{
+async function getPackageJSON() {
+    return new Promise(async (resolve) => {
         const json = await readjson(`../apm.json`);
         resolve(json)
     })
 }
-module.exports = { program, arweave, saveFile, savePackageJSON, saveCache, getCache, readJSON, zipFolder, getPackageJSON,uploadToArweave, getFile, getDevWallet, ora, unCompressFile, getUserBalance }
+module.exports = {path, program, arweave, saveFile, savePackageJSON, saveCache, getCache, readJSON, zipFolder, getPackageJSON, uploadToArweave, getFile, getDevWallet, ora, unCompressFile, getUserBalance }

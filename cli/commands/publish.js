@@ -7,6 +7,7 @@ const fs = require("fs")
 const inquirer = require('inquirer')
 inquirer.registerPrompt('fuzzypath', require('inquirer-fuzzy-path'))
 async function publish() {
+    console.log('Please start typing the directory you would like to publish')
     inquirer.prompt([
         {
             type: 'fuzzypath',
