@@ -28,7 +28,7 @@
     "app-root-path": "^3.0.0",
     "arql-ops": "^1.0.0",
     "arweave": "^1.7.1",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "cache-manager": "^3.3.0",
     "cache-manager-fs": "^1.0.8",
     "child_process": "^1.0.2",
